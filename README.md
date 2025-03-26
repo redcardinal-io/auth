@@ -1,1 +1,1 @@
-# Authentication component for redcardinal.io
+## Authentication component for redcardinal.io
