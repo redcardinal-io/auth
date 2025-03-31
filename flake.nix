@@ -39,6 +39,7 @@
               echo "  air        - Start development server with live reload"
               echo "  go test    - Run tests"
               echo "  sqlc generate - Generate database code"
+              echo "  goose      - Run database migrations"
             '';
           };
         });
