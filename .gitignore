@@ -24,3 +24,5 @@ go.work.sum
 # env file
 .env
 *.lock
+volumes/
+tmp/
