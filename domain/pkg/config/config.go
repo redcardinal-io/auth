@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -42,16 +41,6 @@ func initializeViper() error {
 	// Allow viper to use environment variables
 	viper.AutomaticEnv()
 
-	// Configure viper to handle nested keys
-	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-
-	// Tell viper about the structure of our config
-	viper.BindEnv("server.host", "RCAUTH_SERVER_HOST")
-	viper.BindEnv("server.port", "RCAUTH_SERVER_PORT")
-	viper.BindEnv("logger.level", "RCAUTH_LOGGER_LEVEL")
-	viper.BindEnv("logger.logfile", "RCAUTH_LOGGER_LOGFILE")
-	viper.BindEnv("logger.mode", "RCAUTH_LOGGER_MODE")
-
 	if err := viper.ReadInConfig(); err != nil {
 		log.Printf("Error reading config file: %s", err)
 		log.Println("Using environment variables")
@@ -62,23 +51,23 @@ func initializeViper() error {
 }
 
 func setDefaults() {
-	viper.SetDefault("server.host", "localhost")
-	viper.SetDefault("server.port", "8000")
-	viper.SetDefault("logger.level", string(INFO))
-	viper.SetDefault("logger.mode", "dev")
+	viper.SetDefault("SERVER_HOST", "localhost")
+	viper.SetDefault("SERVER_PORT", "8000")
+	viper.SetDefault("LOGGER_LEVEL", string(INFO))
+	viper.SetDefault("LOGGER_MODE", "dev")
 }
 
 func validateConfig() error {
-	if viper.GetString("server.host") == "" {
+	if viper.GetString("SERVER_HOST") == "" {
 		return fmt.Errorf("server host is required")
 	}
-	if viper.GetString("server.port") == "" {
+	if viper.GetString("SERVER_PORT") == "" {
 		return fmt.Errorf("server port must be greater than 0")
 	}
-	if viper.GetString("logger.level") == "" {
+	if viper.GetString("LOGGER_LEVEL") == "" {
 		return fmt.Errorf("logger level is required")
 	}
-	if viper.GetString("logger.mode") == "" {
+	if viper.GetString("LOGGER_MODE") == "" {
 		return fmt.Errorf("logger mode is required")
 	}
 	return nil
@@ -95,10 +84,17 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	var config Config
-	if err := viper.Unmarshal(&config); err != nil {
-		return nil, fmt.Errorf("unable to decode into struct: %v", err)
+	config := &Config{
+		Server: ServerConfig{
+			Host: viper.GetString("SERVER_HOST"),
+			Port: viper.GetString("SERVER_PORT"),
+		},
+		Logger: LoggerConfig{
+			Level:   LogLevel(viper.GetString("LOGGER_LEVEL")),
+			LogFile: viper.GetString("LOGGER_LOGFILE"),
+			Mode:    viper.GetString("LOGGER_MODE"),
+		},
 	}
 
-	return &config, nil
+	return config, nil
 }
