@@ -11,5 +11,5 @@ services:
     environment:
       - POSTGRES_USER=redcardinal
       - POSTGRES_PASSWORD=redcardinal
-      - POSTGRES_DB=redcardinal
+      - POSTGRES_DB=postgres
       - DB_NAMESPACE=auth
