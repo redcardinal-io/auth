@@ -9,10 +9,16 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// init registers the initial migration functions with goose for database schema setup and teardown.
 func init() {
 	goose.AddMigrationContext(upInitial, downInitial)
 }
 
+// upInitial applies the initial database migration for the configured schema.
+//
+// This migration creates two PostgreSQL functions for managing automatic updates to the `updated_at` column via triggers, ensures the `uuid-ossp` extension is available for UUID generation, and creates a case-insensitive collation named `case_insensitive` using ICU. The schema name is determined by the `RCAUTH_SCHEMA_NAME` environment variable.
+//
+// Returns an error if any SQL command fails during execution.
 func upInitial(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
@@ -45,6 +51,7 @@ func upInitial(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+// downInitial reverses the initial migration by dropping the trigger functions, case-insensitive collation, and uuid-ossp extension from the schema specified by the RCAUTH_SCHEMA_NAME environment variable. Returns any error encountered during execution.
 func downInitial(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`

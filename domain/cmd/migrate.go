@@ -22,6 +22,7 @@ var (
 	lg           *logger.Logger
 )
 
+// init configures the migration CLI commands, flags, and logger for the application.
 func init() {
 	lg, _ = logger.NewLogger(&config.LoggerConfig{
 		Level: config.INFO,
@@ -76,6 +77,9 @@ var downCmd = &cobra.Command{
 	},
 }
 
+// runPostgresMigrations executes PostgreSQL database migrations in the specified direction ("up" to apply or "down" to reset all migrations).
+// 
+// Returns an error if required environment variables are missing, the database connection fails, the migration direction is invalid, or if migration execution encounters an error.
 func runPostgresMigrations(direction string) error {
 	if dbString == "" {
 		return fmt.Errorf("PostgreSQL database connection string is required")

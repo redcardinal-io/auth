@@ -9,10 +9,15 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// init registers the upCreateUsers and downCreateUsers migration functions with the goose migration tool.
 func init() {
 	goose.AddMigrationContext(upCreateUsers, downCreateUsers)
 }
 
+// upCreateUsers creates the "users" table and related indexes in the schema specified by the RCAUTH_SCHEMA_NAME environment variable.
+// The table includes columns for user identification, authentication, metadata, timestamps, and enforces uniqueness on email and phone.
+// It also invokes a custom function to manage the updated_at timestamp and creates indexes on frequently queried fields.
+// Returns an error if the table creation or index setup fails.
 func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
@@ -65,6 +70,8 @@ func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+// downCreateUsers drops the "users" table from the schema specified by the RCAUTH_SCHEMA_NAME environment variable.
+// Returns an error if the environment variable is not set or if the table drop operation fails.
 func downCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	if schemaName == "" {
