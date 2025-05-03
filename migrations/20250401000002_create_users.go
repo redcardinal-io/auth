@@ -17,32 +17,31 @@ func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
   create table if not exists %v.users (
-	  id uuid not null unique default uuid_generate_v4(),
-	  aud varchar(255) null,
-	  "role" varchar(255) null,
-	  email varchar(255) null unique,
-	  encrypted_password varchar(255) null,
-	  email_confirmed_at timestamptz null,
-	  invited_at timestamptz null,
-	  confirmation_token varchar(255) null,
-	  confirmation_sent_at timestamptz null,
-	  recovery_token varchar(255) null,
-	  recovery_sent_at timestamptz null,
-	  email_change_token varchar(255) null,
-	  email_change varchar(255) null,
-	  email_change_sent_at timestamptz null,
-	  last_sign_in_at timestamptz null,
-	  raw_app_meta_data jsonb null,
-	  raw_user_meta_data jsonb null,
-	  is_super_admin bool null,
-	  phone varchar(15) null unique default null,
-	  phone_confirmed_at timestamptz null default null,
-	  phone_change varchar(15) null default '',
-	  phone_change_token varchar(255) null default '',
-	  phone_change_sent_at timestamptz null default null,
-	  created_at timestamptz null default now(),
-	  updated_at timestamptz null default now(),
-	  constraint users_pkey primary key (id)
+     id uuid primary key default uuid_generate_v4(),
+     aud varchar(255),
+     role varchar(255),
+     email varchar(255) not null unique,
+     encrypted_password varchar(255),
+     email_confirmed_at timestamptz not null default now(),
+     invited_at timestamptz,
+     confirmation_token varchar(255),
+     confirmation_sent_at timestamptz,
+     recovery_token varchar(255),
+     recovery_sent_at timestamptz,
+     email_change_token varchar(255),
+     email_change varchar(255),
+     email_change_sent_at timestamptz,
+     last_sign_in_at timestamptz,
+     raw_app_metadata jsonb,
+     raw_user_metadata jsonb,
+     is_super_admin boolean default false,
+     phone varchar(15) unique,
+     phone_confirmed_at timestamptz,
+     phone_change varchar(15) default '',
+     phone_change_token varchar(255) default '',
+     phone_change_sent_at timestamptz,
+     created_at timestamptz not null default now(),
+     updated_at timestamptz not null default now()  
   );
 
   select %s.goose_manage_updated_at('%s.users');
@@ -68,8 +67,16 @@ func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 
 func downCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
-	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
-  drop table if exists %s.users;
-  `, schemaName))
-	return err
+	if schemaName == "" {
+		return fmt.Errorf("RCAUTH_SCHEMA_NAME environment variable is not set")
+	}
+
+	query := fmt.Sprintf(`DROP TABLE IF EXISTS %s.users;`, schemaName)
+
+	_, err := tx.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to drop users table: %w", err)
+	}
+
+	return nil
 }

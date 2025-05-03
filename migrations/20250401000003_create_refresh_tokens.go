@@ -19,7 +19,7 @@ func upCreateRefreshTokens(ctx context.Context, tx *sql.Tx) error {
 		create table if not exists %s.refresh_tokens (
 			id uuid primary key default uuid_generate_v4(),
 			"token" varchar(255) not null,
-			user_id varchar(255) not null references %s.users(id) on delete cascade,
+			user_id uuid not null references %s.users(id) on delete cascade,
 			revoked bool not null default false,
 			created_at timestamptz not null default now(),
 			updated_at timestamptz not null default now()

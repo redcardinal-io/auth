@@ -17,10 +17,9 @@ func upCreateAuditLogEntries(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
 		create table if not exists %s.audit_log_entries (
-			id uuid not null,
+			id uuid primary key not null default uuid_generate_v4(),
 			payload json null,
-			created_at timestamptz not null default now(),
-			constraint audit_log_entries_pkey primary key (id)
+			created_at timestamptz not null default now()
 		);
 	`, schemaName),
 	)
