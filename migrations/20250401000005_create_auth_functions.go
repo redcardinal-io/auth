@@ -16,14 +16,12 @@ func init() {
 func upCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
-		-- Gets the User ID from the request cookie
 		create or replace function %s.uid() returns uuid as $$
-		select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid;
+		select coalesce(nullif(current_setting('request.jwt.claim.sub', true), '')::uuid, '00000000-0000-0000-0000-000000000000');
 		$$ language sql stable;
 
-		-- Gets the User role from the request cookie
 		create or replace function %s.role() returns text as $$
-		select nullif(current_setting('request.jwt.claim.role', true), '')::text;
+    select coalesce(nullif(current_setting('request.jwt.claim.role', true), '')::text, '');
 		$$ language sql stable;
 	`, schemaName,
 		schemaName))
@@ -32,7 +30,7 @@ func upCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 
 func downCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
-	_, err := tx.Exec(fmt.Sprintf(`
+	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
 		drop function if exists %s.uid();
 		drop function if exists %s.role();
 	`, schemaName,

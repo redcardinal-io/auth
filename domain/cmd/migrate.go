@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
@@ -62,6 +63,15 @@ var downCmd = &cobra.Command{
 	Short: "Reset all migrations",
 	Long:  "Revert all migrations",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		fmt.Println("WARNING: This will reset ALL migrations. All data will be lost.")
+		fmt.Print("Are you sure you want to continue? (yes/no): ")
+		var response string
+		fmt.Scanln(&response)
+
+		if strings.ToLower(response) != "yes" {
+			fmt.Println("Operation cancelled.")
+			return nil
+		}
 		return runPostgresMigrations("down")
 	},
 }

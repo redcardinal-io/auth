@@ -19,7 +19,7 @@ func upCreateAuditLogEntries(ctx context.Context, tx *sql.Tx) error {
 		create table if not exists %s.audit_log_entries (
 			id uuid not null,
 			payload json null,
-			created_at timestamptz null,
+			created_at timestamptz not null default now(),
 			constraint audit_log_entries_pkey primary key (id)
 		);
 	`, schemaName),
