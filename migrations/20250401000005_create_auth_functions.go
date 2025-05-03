@@ -9,10 +9,12 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// init registers the migration functions for creating and dropping authentication SQL functions with goose.
 func init() {
 	goose.AddMigrationContext(upCreateAuthFunctions, downCreateAuthFunctions)
 }
 
+// upCreateAuthFunctions creates or replaces SQL functions in the specified schema to extract the JWT subject and role claims from the current session context. The functions return default values if the claims are missing or empty. Returns an error if the SQL execution fails.
 func upCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
@@ -28,6 +30,7 @@ func upCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+// downCreateAuthFunctions drops the uid() and role() SQL functions from the specified schema if they exist.
 func downCreateAuthFunctions(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`

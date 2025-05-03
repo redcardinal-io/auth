@@ -22,6 +22,7 @@ var (
 	lg           *logger.Logger
 )
 
+// init configures the logger, migration command flags, and registers migration subcommands with the root CLI command.
 func init() {
 	lg, _ = logger.NewLogger(&config.LoggerConfig{
 		Level: config.INFO,
@@ -76,6 +77,11 @@ var downCmd = &cobra.Command{
 	},
 }
 
+// runPostgresMigrations executes PostgreSQL database migrations in the specified direction ("up" to apply all pending migrations or "down" to reset all migrations).
+// 
+// Validates required environment variables and connection parameters, sets the migration version table based on the schema, establishes a database connection, and runs the migrations using the goose library.
+// 
+// Returns an error if required configuration is missing, the database connection fails, the migration direction is invalid, or if migration execution encounters an error.
 func runPostgresMigrations(direction string) error {
 	if dbString == "" {
 		return fmt.Errorf("PostgreSQL database connection string is required")

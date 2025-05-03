@@ -9,10 +9,12 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// init registers the migration functions for creating and dropping the users table with the goose migration tool.
 func init() {
 	goose.AddMigrationContext(upCreateUsers, downCreateUsers)
 }
 
+// upCreateUsers creates the "users" table within the schema specified by the RCAUTH_SCHEMA_NAME environment variable, including all necessary columns, constraints, and indexes for user management.
 func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
@@ -66,6 +68,7 @@ func upCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+// downCreateUsers drops the "users" table from the schema specified by the RCAUTH_SCHEMA_NAME environment variable if it exists.
 func downCreateUsers(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
