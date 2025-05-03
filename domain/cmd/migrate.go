@@ -35,6 +35,10 @@ func init() {
 		"PostgreSQL database connection string (or set RCAUTH_POSTGRES_URL env var)",
 	)
 
+	// Add up and down subcommands
+	migrateCmd.AddCommand(upCmd)
+	migrateCmd.AddCommand(downCmd)
+
 	rootCmd.AddCommand(migrateCmd)
 }
 
@@ -42,12 +46,27 @@ var migrateCmd = &cobra.Command{
 	Use:   "migrate",
 	Short: "Database migration commands",
 	Long:  "Run database migrations for PostgreSQL",
+}
+
+var upCmd = &cobra.Command{
+	Use:   "up",
+	Short: "Run migrations up",
+	Long:  "Apply all pending migrations",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runPostgresMigrations()
+		return runPostgresMigrations("up")
 	},
 }
 
-func runPostgresMigrations() error {
+var downCmd = &cobra.Command{
+	Use:   "down",
+	Short: "Reset all migrations",
+	Long:  "Revert all migrations",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runPostgresMigrations("down")
+	},
+}
+
+func runPostgresMigrations(direction string) error {
 	if dbString == "" {
 		return fmt.Errorf("PostgreSQL database connection string is required")
 	}
@@ -58,7 +77,7 @@ func runPostgresMigrations() error {
 
 	goose.SetTableName(fmt.Sprintf("%s.goose_db_version", os.Getenv("RCAUTH_SCHEMA_NAME")))
 
-	lg.Info("Running PostgreSQL migrations...")
+	lg.Info("Connecting to PostgreSQL database...")
 	db, err := sql.Open("pgx", dbString)
 	if err != nil {
 		lg.Error("failed to connect to PostgreSQL database", zap.Error(err))
@@ -76,11 +95,24 @@ func runPostgresMigrations() error {
 		return fmt.Errorf("failed to set PostgreSQL dialect: %w", err)
 	}
 
-	if err := goose.Up(db, migrationDir); err != nil {
-		lg.Error("failed to run PostgreSQL migrations", zap.Error(err))
-		return fmt.Errorf("failed to run PostgreSQL migrations: %w", err)
+	var migrationErr error
+	if direction == "up" {
+		lg.Info("Running migrations up...")
+		migrationErr = goose.Up(db, migrationDir)
+	} else if direction == "down" {
+		lg.Info("Resetting all migrations...")
+		migrationErr = goose.Reset(db, migrationDir)
+	} else {
+		return fmt.Errorf("invalid migration direction: %s", direction)
 	}
 
-	lg.Info("PostgreSQL migrations completed successfully")
+	if migrationErr != nil {
+		lg.Error("failed to run PostgreSQL migrations",
+			zap.String("direction", direction),
+			zap.Error(migrationErr))
+		return fmt.Errorf("failed to run PostgreSQL migrations (%s): %w", direction, migrationErr)
+	}
+
+	lg.Info("PostgreSQL migrations completed successfully", zap.String("direction", direction))
 	return nil
 }
