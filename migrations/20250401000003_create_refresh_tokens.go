@@ -9,10 +9,14 @@ import (
 	"github.com/pressly/goose/v3"
 )
 
+// init registers the migration functions for creating and dropping the refresh_tokens table with the goose migration tool.
 func init() {
 	goose.AddMigrationContext(upCreateRefreshTokens, downCreateRefreshTokens)
 }
 
+// upCreateRefreshTokens creates the refresh_tokens table and related indexes in the specified schema if they do not exist. 
+// It also sets up automatic management of the updated_at timestamp.
+// Returns an error if the table creation or setup fails.
 func upCreateRefreshTokens(ctx context.Context, tx *sql.Tx) error {
 	schemaName := os.Getenv("RCAUTH_SCHEMA_NAME")
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`
@@ -39,6 +43,7 @@ func upCreateRefreshTokens(ctx context.Context, tx *sql.Tx) error {
 	return err
 }
 
+// downCreateRefreshTokens drops the refresh_tokens table from the schema specified by the RCAUTH_SCHEMA_NAME environment variable.
 func downCreateRefreshTokens(ctx context.Context, tx *sql.Tx) error {
 	_, err := tx.ExecContext(ctx, fmt.Sprintf(`drop table if exists %v.refresh_tokens;`, os.Getenv("RCAUTH_SCHEMA_NAME")))
 	return err
