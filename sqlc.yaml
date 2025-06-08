@@ -1,9 +1,0 @@
-version: "2"
-sql:
-  - engine: "postgresql"
-    gen:
-      go:
-        package: "gen"
-        sql_package: "pgx/v5"
-        emit_json_tags: false
-        omit_unused_structs: true

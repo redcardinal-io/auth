@@ -16,30 +16,30 @@
         {
           default = pkgs.mkShell {
             packages = with pkgs; [
-              go
-              gopls
-              delve
-              air
-              sqlc
-              go-tools
-              golangci-lint
-              gotests
+              rustc
+              cargo
+              rust-analyzer
+              rustfmt
+              clippy
+              cargo-watch
+              sqlx-cli
+              cargo-audit
+              cargo-expand
               jq
-              goose
               pgcli
             ];
             shellHook = ''
-              export GOPATH="$HOME/go"
-              export PATH="$GOPATH/bin:$PATH"
+              export CARGO_HOME="$HOME/.cargo"
+              export PATH="$CARGO_HOME/bin:$PATH"
               
               if [ -f config.env ]; then
                 source config.env
               fi
               echo "Available Commands:"
-              echo "  air        - Start development server with live reload"
-              echo "  go test    - Run tests"
-              echo "  sqlc generate - Generate database code"
-              echo "  goose      - Run database migrations"
+              echo "  cargo watch -x run  - Start development server with live reload"
+              echo "  cargo test         - Run tests"
+              echo "  sqlx migrate       - Run database migrations" 
+              echo "  sqlx prepare       - Generate database queries for compile-time checking"
             '';
           };
         });

@@ -1,0 +1,3 @@
+[workspace]
+members = [ "rcauth-cli","rcauth-core", "rcauth-server", "rcauth-utils"]
+resolver = "3"

@@ -3,7 +3,6 @@ services:
     build:
       context: ./postgres
       dockerfile: Dockerfile.postgres.dev
-    container_name: auth_postgres
     ports:
       - "5432:5432"
     volumes:
@@ -12,4 +11,4 @@ services:
       - POSTGRES_USER=redcardinal
       - POSTGRES_PASSWORD=redcardinal
       - POSTGRES_DB=postgres
-      - DB_NAMESPACE=auth
+      - DB_NAMESPACE=rcauth
