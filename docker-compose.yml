@@ -1,7 +1,7 @@
 services:
   postgres:
     build:
-      context: ./postgres
+      context: ./rcauth-store
       dockerfile: Dockerfile.postgres.dev
     ports:
       - "5432:5432"
@@ -10,5 +10,5 @@ services:
     environment:
       - POSTGRES_USER=redcardinal
       - POSTGRES_PASSWORD=redcardinal
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=rcauth
       - DB_NAMESPACE=rcauth

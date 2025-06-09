@@ -1,0 +1,22 @@
+[package]
+name = "rcauth-store"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[dependencies]
+tokio = { workspace = true, features = ["full"] }
+sqlx = { version = "0.8.6", features = [
+  "runtime-tokio-rustls",
+  "postgres",
+  "macros",
+  "chrono",
+  "migrate",
+  "uuid",
+] }
+tracing = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+
+[profile.dev.package.sqlx-macros]
+opt-level = 3
