@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use rcauth_core::{error::AppError, store::Store};
+use rcauth_core::{error::Error, store::Store};
 use snafu::ResultExt;
 
 use sqlx::postgres::PgPoolOptions;
@@ -12,7 +12,7 @@ pub struct PgStore {
     pool: sqlx::PgPool,
 }
 
-pub async fn new(config: Config) -> Result<PgStore, AppError> {
+pub async fn new(config: Config) -> Result<PgStore, Error> {
     info!(
         "🔌 Connecting to PostgreSQL database at {}",
         config.connection_string()
@@ -27,7 +27,7 @@ impl Store for PgStore {
     type Configuration = Config;
     type Pool = sqlx::PgPool;
 
-    async fn connect(config: &Config) -> Result<sqlx::PgPool, AppError> {
+    async fn connect(config: &Config) -> Result<sqlx::PgPool, Error> {
         let pool = PgPoolOptions::new()
             .max_connections(config.pool_size)
             .connect(&config.connection_string())
@@ -37,11 +37,11 @@ impl Store for PgStore {
         Ok(pool)
     }
 
-    async fn run_migrations(&self) -> Result<(), AppError> {
+    async fn run_migrations(&self) -> Result<(), Error> {
         todo!()
     }
 
-    async fn pool(&self) -> Result<sqlx::PgPool, AppError> {
+    async fn pool(&self) -> Result<sqlx::PgPool, Error> {
         todo!()
     }
 }

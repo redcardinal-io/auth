@@ -1,4 +1,4 @@
-use crate::error::{AppError, Result};
+use crate::error::{Error, ErrorCode, Result};
 use serde::Deserialize;
 use tracing::Level;
 
@@ -42,8 +42,6 @@ impl LogConfig {
     pub fn from_env() -> Result<Self> {
         envy::prefixed("RCAUTH_")
             .from_env()
-            .map_err(|e| AppError::Configuration {
-                message: format!("Failed to load log configuration: {}", e),
-            })
+            .map_err(|e| Error::new(ErrorCode::Internal, "Failed to load log configuration", e))
     }
 }
