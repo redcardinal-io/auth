@@ -17,6 +17,9 @@ sqlx = { version = "0.8.6", features = [
 tracing = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
+snafu = { workspace = true }
+rcauth-core = { path = "../rcauth-core" }
+async-trait = { workspace = true }
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3
