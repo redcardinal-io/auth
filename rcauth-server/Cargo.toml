@@ -6,6 +6,8 @@ edition = "2024"
 [dependencies]
 tokio = { workspace = true, features = ["full"] }
 tower = "0.5.2"
+axum = { version = "0.8.4", features = ["default"] }
+hyper = "1.6.0"
 tower-http = { version = "0.6.6", features = ["cors", "trace"] }
 tower-layer = "0.3.3"
 validator = { version = "0.20.0", features = ["derive"] }
