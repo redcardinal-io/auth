@@ -1,4 +1,4 @@
 #![allow(dead_code)]
-mod config;
+pub mod config;
 mod error;
-mod store;
+pub mod store;
