@@ -4,11 +4,16 @@ use tracing::Level;
 
 #[derive(Debug, Deserialize)]
 pub struct LogConfig {
-    #[serde(rename = "LOG_LEVEL")]
+    #[serde(rename = "RCAUTH_LOG_LEVEL", default = "default_log_level")]
     pub log_level: LogLevel,
 }
 
+fn default_log_level() -> LogLevel {
+    LogLevel::Info
+}
+
 #[derive(Debug, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
 pub enum LogLevel {
     Trace,
     Debug,
@@ -40,7 +45,7 @@ impl LogConfig {
     }
 
     pub fn from_env() -> Result<Self> {
-        envy::prefixed("RCAUTH_")
+        envy::keep_names()
             .from_env()
             .map_err(|e| Error::new(ErrorCode::Internal, "Failed to load log configuration", e))
     }

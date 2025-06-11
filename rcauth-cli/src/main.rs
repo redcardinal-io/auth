@@ -3,9 +3,8 @@ mod serve;
 
 use clap::{Parser, Subcommand};
 use dotenvy;
-use rcauth_core::error::Result;
+use rcauth_core::{error::Result, logger::LogConfig};
 use rcauth_store::config::Config;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -28,19 +27,7 @@ enum Commands {
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
-    // print cwd
-    println!(
-        "Current working directory: {}",
-        std::env::current_dir().unwrap().display()
-    );
-
-    // Initialize tracing
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
-        ))
-        .with(tracing_subscriber::fmt::layer())
-        .init();
+    LogConfig::from_env()?.init();
 
     let cli = Cli::parse();
 
