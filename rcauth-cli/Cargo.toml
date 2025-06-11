@@ -13,3 +13,4 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 rcauth-core = { path = "../rcauth-core" }
 rcauth-store = { path = "../rcauth-store" }
+rcauth-server = { path = "../rcauth-server" }
