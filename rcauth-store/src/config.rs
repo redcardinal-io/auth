@@ -15,7 +15,14 @@ fn default_ssl_mode() -> String {
     "prefer".to_string()
 }
 
-/// Returns the default directory for database migrations ("./migrations").
+/// Returns the default path for database migrations.
+///
+/// # Examples
+///
+/// ```
+/// let dir = default_migrations_dir();
+/// assert_eq!(dir, "./migrations");
+/// ```
 fn default_migrations_dir() -> String {
     "./migrations".to_string()
 }
@@ -54,6 +61,9 @@ pub struct ConfigBuilder {
 }
 
 impl Default for Config {
+    /// Creates a `Config` instance with default values for all fields.
+    ///
+    /// Host, user, password, and database are set to empty strings. Port, pool size, SSL mode, and migrations directory use their respective defaults.
     fn default() -> Self {
         Self {
             host: String::new(),
@@ -69,11 +79,45 @@ impl Default for Config {
 }
 
 impl Config {
-    /// Creates a new builder for constructing a Config
+    /// Returns a new builder for constructing a `Config` instance.
+    ///
+    /// The builder allows incremental configuration of database connection parameters before validation and creation of a `Config`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::builder()
+    ///     .host("localhost")
+    ///     .user("postgres")
+    ///     .database("mydb")
+    ///     .build()
+    ///     .unwrap();
+    /// ```
     pub fn builder() -> ConfigBuilder {
         ConfigBuilder::default()
     }
 
+    /// Constructs a PostgreSQL connection string from the configuration fields.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config {
+    ///     host: "localhost".to_string(),
+    ///     port: 5432,
+    ///     user: "user".to_string(),
+    ///     password: "pass".to_string(),
+    ///     database: "mydb".to_string(),
+    ///     pool_size: 10,
+    ///     ssl_mode: "prefer".to_string(),
+    ///     migrations_dir: "./migrations".to_string(),
+    /// };
+    /// let conn_str = config.connection_string();
+    /// assert_eq!(
+    ///     conn_str,
+    ///     "postgres://user:pass@localhost:5432/mydb?sslmode=prefer"
+    /// );
+    /// ```
     pub fn connection_string(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}?sslmode={}",
@@ -85,11 +129,33 @@ impl Config {
         self.pool_size
     }
 
+    /// Returns the path to the migrations directory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// let dir = config.migrations_dir();
+    /// assert_eq!(dir, "./migrations");
+    /// ```
     pub fn migrations_dir(&self) -> &str {
         &self.migrations_dir
     }
 
-    /// Validates the configuration
+    /// Validates the configuration fields for correctness.
+    ///
+    /// Checks that required fields (host, user, database) are non-empty, the pool size is at least 1, the SSL mode is valid, and the migrations directory exists and is a directory if specified.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any validation check fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// assert!(config.validate().is_err());
+    /// ```
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Check required fields
         if self.host.is_empty() {
@@ -137,55 +203,125 @@ impl Config {
 }
 
 impl ConfigBuilder {
-    /// Set the database host
+    /// Sets the database host for the configuration builder.
+    ///
+    /// Returns a new builder instance with the specified host set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().host("localhost");
+    /// ```
     pub fn host<S: Into<String>>(mut self, host: S) -> Self {
         self.host = Some(host.into());
         self
     }
 
-    /// Set the database port
+    /// Sets the database port for the configuration builder.
+    ///
+    /// Returns a new builder instance with the specified port set, allowing method chaining.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().port(5432);
+    /// let config = builder.build().unwrap();
+    /// assert_eq!(config.port, 5432);
+    /// ```
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
         self
     }
 
-    /// Set the database user
+    /// Sets the database user for the configuration builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().user("dbuser");
+    /// ```
     pub fn user<S: Into<String>>(mut self, user: S) -> Self {
         self.user = Some(user.into());
         self
     }
 
-    /// Set the database password
+    /// Sets the database password for the configuration builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().password("secret");
+    /// ```
     pub fn password<S: Into<String>>(mut self, password: S) -> Self {
         self.password = Some(password.into());
         self
     }
 
-    /// Set the database name
+    /// Sets the database name for the configuration builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().database("mydb");
+    /// ```
     pub fn database<S: Into<String>>(mut self, database: S) -> Self {
         self.database = Some(database.into());
         self
     }
 
-    /// Set the connection pool size
+    /// Sets the connection pool size for the configuration builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().pool_size(20);
+    /// let config = builder.build().unwrap();
+    /// assert_eq!(config.pool_size(), 20);
+    /// ```
     pub fn pool_size(mut self, pool_size: u32) -> Self {
         self.pool_size = Some(pool_size);
         self
     }
 
-    /// Set the SSL mode
+    /// Sets the SSL mode for the database connection in the builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().ssl_mode("require");
+    /// ```
     pub fn ssl_mode<S: Into<String>>(mut self, ssl_mode: S) -> Self {
         self.ssl_mode = Some(ssl_mode.into());
         self
     }
 
-    /// Set the migrations directory
+    /// Sets the migrations directory for the configuration builder.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let builder = ConfigBuilder::default().migrations_dir("./db/migrations");
+    /// ```
     pub fn migrations_dir<S: Into<String>>(mut self, migrations_dir: S) -> Self {
         self.migrations_dir = Some(migrations_dir.into());
         self
     }
 
-    /// Build the Config object
+    /// Builds a `Config` instance from the builder, applying defaults for unset fields and validating the result.
+    ///
+    /// Returns the constructed `Config` if all required fields are valid; otherwise, returns a validation error.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::builder()
+    ///     .host("localhost".to_string())
+    ///     .user("postgres".to_string())
+    ///     .database("mydb".to_string())
+    ///     .build()
+    ///     .unwrap();
+    /// assert_eq!(config.host, "localhost");
+    /// ```
     pub fn build(self) -> Result<Config, Box<dyn std::error::Error>> {
         let config = Config {
             host: self.host.unwrap_or_else(String::new),

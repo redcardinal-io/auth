@@ -24,6 +24,10 @@ lazy_static! {
 }
 
 // Loads the configuration file once and returns the cached config
+/// Loads configuration from the `rcauth.toml` file if it exists.
+///
+/// Attempts to parse the file content into `StoreConfig`, `ServerConfig`, and `LoggerConfig` independently.
+/// Returns a `ConfigFile` struct containing any successfully parsed configurations; fields remain `None` if parsing fails or the file is missing.
 fn load_config_file() -> ConfigFile {
     const CONFIG_PATH: &str = "rcauth.toml";
     let mut config = ConfigFile::default();
@@ -55,6 +59,20 @@ fn load_config_file() -> ConfigFile {
     config
 }
 
+/// Loads the database store configuration from a cached configuration file or environment variables.
+///
+/// Attempts to retrieve the `StoreConfig` from a cached configuration file (`rcauth.toml`). If not present, falls back to loading from environment variables. Returns an error if configuration cannot be loaded from either source.
+///
+/// # Returns
+///
+/// A `StoreConfig` instance on success, or a boxed error if loading fails.
+///
+/// # Examples
+///
+/// ```
+/// let config = load_store_config().expect("Failed to load store configuration");
+/// assert_eq!(config.db_user, "postgres");
+/// ```
 pub fn load_store_config() -> Result<StoreConfig, Box<dyn std::error::Error>> {
     // Try to load from config file first
     if let Some(config) = &CONFIG.store_config {
@@ -78,6 +96,22 @@ pub fn load_store_config() -> Result<StoreConfig, Box<dyn std::error::Error>> {
     }
 }
 
+/// Loads the server configuration from a cached configuration file or environment variables.
+///
+/// Attempts to retrieve the `ServerConfig` from the cached configuration file. If not present,
+/// falls back to loading the configuration from environment variables. Returns an error if the
+/// configuration cannot be loaded from either source.
+///
+/// # Returns
+///
+/// A `Result` containing the loaded `ServerConfig` on success, or a boxed error if loading fails.
+///
+/// # Examples
+///
+/// ```
+/// let server_config = load_server_config()?;
+/// println!("API server will run on {}:{}", server_config.api_host, server_config.api_port);
+/// ```
 pub fn load_server_config() -> Result<ServerConfig, Box<dyn std::error::Error>> {
     // Try to load from config file first
     if let Some(config) = &CONFIG.server_config {
@@ -91,6 +125,20 @@ pub fn load_server_config() -> Result<ServerConfig, Box<dyn std::error::Error>> 
     Ok(config)
 }
 
+/// Loads the logger configuration from the cached configuration file or environment variables.
+///
+/// Attempts to retrieve the logger configuration from the cached file-based config. If unavailable, falls back to loading from environment variables. Returns an error if neither source provides a valid configuration.
+///
+/// # Returns
+///
+/// A `LoggerConfig` instance on success, or an error if loading fails.
+///
+/// # Examples
+///
+/// ```
+/// let logger_config = load_logger_config().unwrap();
+/// assert_eq!(logger_config.level, "info");
+/// ```
 pub fn load_logger_config() -> Result<LoggerConfig, Box<dyn std::error::Error>> {
     // Try to load from config file first
     if let Some(config) = &CONFIG.logger_config {
@@ -104,6 +152,27 @@ pub fn load_logger_config() -> Result<LoggerConfig, Box<dyn std::error::Error>> 
     Ok(config)
 }
 
+/// Loads the store (database) configuration from environment variables.
+///
+/// Reads environment variables related to database connection settings, parses and validates them,
+/// and constructs a `StoreConfig` instance. Returns an error if any required value is invalid or missing.
+///
+/// # Returns
+///
+/// - `Ok(StoreConfig)` if all required environment variables are present and valid.
+/// - `Err(Box<dyn std::error::Error>)` if any configuration is invalid or missing.
+///
+/// # Examples
+///
+/// ```
+/// std::env::set_var("RCAUTH_DB_HOST", "localhost");
+/// std::env::set_var("RCAUTH_DB_PORT", "5432");
+/// std::env::set_var("RCAUTH_DB_USER", "user");
+/// std::env::set_var("RCAUTH_DB_PASSWORD", "pass");
+/// std::env::set_var("RCAUTH_DB_NAME", "mydb");
+/// let config = load_store_from_env().unwrap();
+/// assert_eq!(config.host, "localhost");
+/// ```
 fn load_store_from_env() -> Result<StoreConfig, Box<dyn std::error::Error>> {
     let mut builder = StoreConfig::builder();
 
@@ -151,6 +220,23 @@ fn load_store_from_env() -> Result<StoreConfig, Box<dyn std::error::Error>> {
     })
 }
 
+/// Loads the server configuration from environment variables.
+///
+/// Reads environment variables related to API and management server hosts and ports, Swagger and CORS enable flags, and allowed CORS origins. Constructs and returns a `ServerConfig` if all required values are valid; otherwise, returns a configuration error.
+///
+/// # Returns
+///
+/// A `ServerConfig` instance if environment variables are valid; otherwise, an error.
+///
+/// # Examples
+///
+/// ```
+/// std::env::set_var("RCAUTH_API_SERVER_HOST", "127.0.0.1");
+/// std::env::set_var("RCAUTH_API_SERVER_PORT", "8080");
+/// let config = load_server_from_env().unwrap();
+/// assert_eq!(config.api_server_host, "127.0.0.1");
+/// assert_eq!(config.api_server_port, 8080);
+/// ```
 fn load_server_from_env() -> Result<ServerConfig, Box<dyn std::error::Error>> {
     let mut builder = ServerConfig::builder();
 
@@ -197,6 +283,19 @@ fn load_server_from_env() -> Result<ServerConfig, Box<dyn std::error::Error>> {
 
 // The load_*_from_file functions have been consolidated into load_config_file
 
+/// Loads the logger configuration from environment variables.
+///
+/// Reads the `RCAUTH_LOG_LEVEL` environment variable to set the log level, if present. Returns a `LoggerConfig` on success, or a configuration error if the environment variable is invalid or the configuration cannot be built.
+///
+/// # Returns
+/// A `LoggerConfig` instance if the environment variable is valid; otherwise, an error describing the configuration issue.
+///
+/// # Examples
+///
+/// ```
+/// let logger_config = load_logger_from_env().unwrap();
+/// assert!(logger_config.log_level().is_some());
+/// ```
 fn load_logger_from_env() -> Result<LoggerConfig, Box<dyn std::error::Error>> {
     let mut builder = LoggerConfig::builder();
 

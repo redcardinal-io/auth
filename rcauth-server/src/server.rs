@@ -12,6 +12,20 @@ use utoipa::openapi::{Info, Paths};
 
 use crate::Config;
 
+/// Starts the API HTTP server with the provided configuration.
+///
+/// Validates the configuration, sets up CORS and optional Swagger UI documentation, nests API routes under `/api/v1`, and serves the application on the configured address. Returns an error if configuration validation or server startup fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use rcauth_server::config::Config;
+/// # async fn run() -> Result<(), Box<dyn std::error::Error>> {
+/// let config = Config::default();
+/// rcauth_server::server::run_api_server(&config).await?;
+/// # Ok(())
+/// # }
+/// ```
 pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
     if let Err(err) = config.validate() {
         return Err(format!("Invalid API server configuration: {}", err).into());
@@ -75,7 +89,22 @@ pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Run the management server with the provided configuration
+/// Starts the management HTTP server with the specified configuration.
+///
+/// Validates the provided configuration, sets up CORS and optional Swagger UI documentation,
+/// nests management routes under `/management/v1`, and serves the application on the configured address.
+///
+/// Returns an error if configuration validation or server startup fails.
+///
+/// # Examples
+///
+/// ```no_run
+/// # use rcauth_server::{Config, server::run_management_server};
+/// # tokio_test::block_on(async {
+/// let config = Config::default();
+/// run_management_server(&config).await.unwrap();
+/// # });
+/// ```
 pub async fn run_management_server(config: &Config) -> Result<(), Box<dyn Error>> {
     if let Err(err) = config.validate() {
         return Err(format!("Invalid API server configuration: {}", err).into());

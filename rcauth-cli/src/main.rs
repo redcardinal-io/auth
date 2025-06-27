@@ -25,7 +25,22 @@ enum Commands {
     Serve,
 }
 
-#[tokio::main]
+/// Entry point for the command-line application.
+///
+/// Loads environment variables, initializes logging, parses CLI arguments, loads database configuration, and executes the selected subcommand (`Migrate` or `Serve`). Returns an error if any step fails.
+///
+/// # Errors
+///
+/// Returns an error if environment variable loading, logging initialization, configuration loading, or subcommand execution fails.
+///
+/// # Examples
+///
+/// Run the application with a subcommand:
+///
+/// ```sh
+/// cargo run -- migrate
+/// cargo run -- serve
+/// ```
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Load environment variables from .env file if present
     dotenvy::dotenv().ok();
