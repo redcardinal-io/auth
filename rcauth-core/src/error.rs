@@ -53,6 +53,20 @@ impl Display for ErrorCode {
 }
 
 impl ErrorCode {
+    /// Returns the corresponding HTTP status code for the error code.
+    ///
+    /// Maps each `ErrorCode` variant to an appropriate `StatusCode` value, enabling consistent translation of application errors to HTTP responses.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rcauth_core::error::ErrorCode;
+    /// use http::StatusCode;
+    ///
+    /// assert_eq!(ErrorCode::Conflict.to_status_code(), StatusCode::CONFLICT);
+    /// assert_eq!(ErrorCode::ServerError.to_status_code(), StatusCode::INTERNAL_SERVER_ERROR);
+    /// assert_eq!(ErrorCode::ValidationError.to_status_code(), StatusCode::UNPROCESSABLE_ENTITY);
+    /// ```
     pub fn to_status_code(&self) -> StatusCode {
         match self {
             ErrorCode::Conflict => StatusCode::CONFLICT,

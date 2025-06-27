@@ -12,6 +12,24 @@ use utoipa::openapi::{Info, Paths};
 
 use crate::Config;
 
+/// Starts the main API HTTP server with configured routes, CORS, and optional Swagger UI documentation.
+///
+/// Validates the provided configuration, applies CORS settings if enabled, and sets up API routes under `/api/v1`.
+/// If Swagger UI is enabled, serves OpenAPI documentation at `/swagger-ui` and `/api/v1/api-docs/openapi.json`.
+/// Binds to the address specified in the configuration and serves requests asynchronously.
+///
+/// # Errors
+///
+/// Returns an error if the configuration is invalid or if the server fails to bind or run.
+///
+/// # Examples
+///
+/// ```no_run
+/// let config = Config::default();
+/// tokio::runtime::Runtime::new().unwrap().block_on(async {
+///     run_api_server(&config).await.unwrap();
+/// });
+/// ```
 pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
     if let Err(err) = config.validate() {
         return Err(format!("Invalid API server configuration: {}", err).into());
@@ -75,7 +93,22 @@ pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-/// Run the management server with the provided configuration
+/// Starts the management HTTP server with the specified configuration.
+///
+/// Validates the configuration, sets up CORS and optional Swagger UI documentation, nests management routes under `/management/v1`, and serves requests on the configured address.
+///
+/// # Errors
+///
+/// Returns an error if the configuration is invalid or if the server fails to bind or run.
+///
+/// # Examples
+///
+/// ```no_run
+/// let config = Config::default();
+/// tokio::spawn(async move {
+///     run_management_server(&config).await.unwrap();
+/// });
+/// ```
 pub async fn run_management_server(config: &Config) -> Result<(), Box<dyn Error>> {
     if let Err(err) = config.validate() {
         return Err(format!("Invalid API server configuration: {}", err).into());
