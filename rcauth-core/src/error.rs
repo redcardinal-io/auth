@@ -31,6 +31,7 @@ pub enum ErrorCode {
     Internal,
     Invalid,
     NotFound,
+    ServerError,
     Unauthorized,
     Forbidden,
     Timeout,
@@ -38,6 +39,7 @@ pub enum ErrorCode {
     UnprocessableEntity,
     DatabaseError,
     ValidationError,
+    ConfigurationError,
 }
 
 impl Display for ErrorCode {
@@ -54,6 +56,7 @@ impl ErrorCode {
     pub fn to_status_code(&self) -> StatusCode {
         match self {
             ErrorCode::Conflict => StatusCode::CONFLICT,
+            ErrorCode::ServerError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::Internal => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::Invalid => StatusCode::BAD_REQUEST,
             ErrorCode::NotFound => StatusCode::NOT_FOUND,
@@ -64,6 +67,7 @@ impl ErrorCode {
             ErrorCode::UnprocessableEntity => StatusCode::UNPROCESSABLE_ENTITY,
             ErrorCode::DatabaseError => StatusCode::INTERNAL_SERVER_ERROR,
             ErrorCode::ValidationError => StatusCode::UNPROCESSABLE_ENTITY,
+            ErrorCode::ConfigurationError => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

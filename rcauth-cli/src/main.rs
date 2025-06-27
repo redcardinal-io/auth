@@ -1,10 +1,12 @@
+mod config;
 mod migrate;
 mod serve;
 
 use clap::{Parser, Subcommand};
 use dotenvy;
-use rcauth_core::{error::Result, logger::LogConfig};
-use rcauth_store::config::Config;
+use tracing::info;
+
+use crate::config::{load_logger_config, load_store_config};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -24,21 +26,23 @@ enum Commands {
 }
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load environment variables from .env file if present
     dotenvy::dotenv().ok();
 
-    LogConfig::from_env()?.init();
+    // Initialize logging
+    load_logger_config()?.init();
 
+    // Parse command line arguments
     let cli = Cli::parse();
 
+    // Load database configuration
+    let store_config = load_store_config()?;
+    info!("🛢️ Database configuration loaded successfully");
+
     match &cli.command {
-        Commands::Migrate => {
-            let config = Config::from_env()?;
-            migrate::run(config).await?;
-        }
-        Commands::Serve => {
-            serve::run().await?;
-        }
+        Commands::Migrate => migrate::run(store_config).await?,
+        Commands::Serve => serve::run().await?,
     }
 
     Ok(())
