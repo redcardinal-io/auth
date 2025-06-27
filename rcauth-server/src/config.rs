@@ -175,21 +175,14 @@ impl Config {
     /// ```
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
         // Validate API server host
-        if IpAddr::from_str(&self.api_server_host).is_err() && self.api_server_host != "localhost" {
-            return Err(format!("Invalid API server host: {}", self.api_server_host).into());
+        if self.api_server_host.is_empty() {
+            return Err("API server host cannot be empty".into());
         }
 
         // Validate management server host
-        if IpAddr::from_str(&self.management_server_host).is_err()
-            && self.management_server_host != "localhost"
-        {
-            return Err(format!(
-                "Invalid management server host: {}",
-                self.management_server_host
-            )
-            .into());
+        if self.management_server_host.is_empty() {
+            return Err("Management server host cannot be empty".into());
         }
-
         // Validate port numbers
         if self.api_server_port == 0 {
             return Err("API server port cannot be 0".into());
