@@ -19,5 +19,5 @@ chrono = { workspace = true }
 snafu = { workspace = true }
 rcauth-core = { path = "../rcauth-core" }
 async-trait = { workspace = true }
-envy = { workspace = true }
 serde = { workspace = true }
+figment = { workspace = true, features = ["env", "toml"] }

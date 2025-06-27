@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+figment = { workspace = true, features = ["env", "toml"] }
 serde = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true, features = ["full"] }

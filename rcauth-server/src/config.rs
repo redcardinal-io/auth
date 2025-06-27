@@ -4,41 +4,65 @@ use std::str::FromStr;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
-    #[serde(rename = "RCAUTH_API_SERVER_HOST")]
+    #[serde(default = "default_api_server_host")]
     pub api_server_host: String,
-    #[serde(rename = "RCAUTH_API_SERVER_PORT")]
+    #[serde(default = "default_api_server_port")]
     pub api_server_port: u16,
-    #[serde(rename = "RCAUTH_MANAGEMENT_SERVER_HOST")]
+    #[serde(default = "default_management_server_host")]
     pub management_server_host: String,
-    #[serde(rename = "RCAUTH_MANAGEMENT_SERVER_PORT")]
+    #[serde(default = "default_management_server_port")]
     pub management_server_port: u16,
-    #[serde(rename = "RCAUTH_ENABLE_SWAGGER")]
+    #[serde(default = "default_enable_swagger")]
     pub enable_swagger: bool,
-    #[serde(rename = "RCAUTH_ENABLE_CORS")]
+    #[serde(default = "default_enable_cors")]
     pub enable_cors: bool,
-    #[serde(rename = "RCAUTH_CORS_ALLOWED_ORIGINS")]
+    #[serde(default = "default_cors_allowed_origins")]
     pub cors_allowed_origins: Vec<String>,
+}
+
+fn default_api_server_host() -> String {
+    "0.0.0.0".to_string()
+}
+
+fn default_api_server_port() -> u16 {
+    8000
+}
+
+fn default_management_server_host() -> String {
+    "0.0.0.0".to_string()
+}
+
+fn default_management_server_port() -> u16 {
+    8001
+}
+
+fn default_enable_swagger() -> bool {
+    true
+}
+
+fn default_enable_cors() -> bool {
+    true
+}
+
+fn default_cors_allowed_origins() -> Vec<String> {
+    vec!["*".to_string()]
 }
 
 impl Default for Config {
     fn default() -> Self {
         Self {
-            api_server_host: "0.0.0.0".to_string(),
-            api_server_port: 8000,
-            management_server_host: "0.0.0.0".to_string(),
-            management_server_port: 8001,
-            enable_swagger: true,
-            enable_cors: true,
-            cors_allowed_origins: vec!["*".to_string()],
+            api_server_host: default_api_server_host(),
+            api_server_port: default_api_server_port(),
+            management_server_host: default_management_server_host(),
+            management_server_port: default_management_server_port(),
+            enable_swagger: default_enable_swagger(),
+            enable_cors: default_enable_cors(),
+            cors_allowed_origins: default_cors_allowed_origins(),
         }
     }
 }
 
 impl Config {
-    pub fn builder() -> ConfigBuilder {
-        ConfigBuilder::default()
-    }
-
     pub fn api_addr(&self) -> String {
         format!("{}:{}", self.api_server_host, self.api_server_port)
     }
