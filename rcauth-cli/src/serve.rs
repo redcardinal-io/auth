@@ -4,6 +4,24 @@ use tracing::{error, info};
 
 use crate::config;
 
+/// Starts and manages the authentication API server and management server concurrently.
+///
+/// Loads the server configuration, then launches both the API and management servers as asynchronous tasks.
+/// The function waits for either server to exit or panic, returning an error if this occurs. Both servers are expected to run indefinitely; reaching the end of this function is considered abnormal.
+///
+/// # Returns
+///
+/// Returns `Ok(())` if both servers run indefinitely (unexpected), or an error if a server exits or panics.
+///
+/// # Examples
+///
+/// ```no_run
+/// #[tokio::main]
+/// async fn main() -> Result<(), Box<dyn std::error::Error>> {
+///     rcauth_cli::serve::run().await?;
+///     Ok(())
+/// }
+/// ```
 pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting authentication server");
 
