@@ -1,66 +1,100 @@
-use rcauth_core::error::Result;
+use figment::{providers::Env, Figment};
 use serde::Deserialize;
 
-/// Returns the default port for the database (5432).
+#[derive(Deserialize, Clone, Debug)]
+pub struct Config {
+    pub host: String,
+    #[serde(default = "default_port")]
+    pub port: u16,
+    pub user: String,
+    pub password: String,
+    pub database: String,
+    #[serde(default = "default_pool_size")]
+    pub pool_size: u32,
+    #[serde(default = "default_ssl_mode")]
+    pub ssl_mode: String,
+    #[serde(default = "default_migrations_dir")]
+    pub migrations_dir: String,
+}
+
+/// Returns the default PostgreSQL port number (5432).
+///
+/// # Examples
+///
+/// ```
+/// let port = default_port();
+/// assert_eq!(port, 5432);
+/// ```
 fn default_port() -> u16 {
     5432
 }
 
-/// Returns the default connection pool size (10).
+/// Returns the default connection pool size for the database configuration.
+///
+/// # Examples
+///
+/// ```
+/// let size = default_pool_size();
+/// assert_eq!(size, 10);
+/// ```
 fn default_pool_size() -> u32 {
     10
 }
 
-/// Returns the default SSL mode ("prefer").
+/// Returns the default SSL mode for PostgreSQL connections, which is "prefer".
+///
+/// # Examples
+///
+/// ```
+/// let ssl_mode = default_ssl_mode();
+/// assert_eq!(ssl_mode, "prefer");
+/// ```
 fn default_ssl_mode() -> String {
     "prefer".to_string()
 }
 
-/// Returns the default directory for database migrations ("./migrations").
+/// Returns the default directory path for database migrations.
+///
+/// # Examples
+///
+/// ```
+/// let dir = default_migrations_dir();
+/// assert_eq!(dir, "./migrations");
+/// ```
 fn default_migrations_dir() -> String {
     "./migrations".to_string()
 }
 
-/// Configuration for the database connection.
-#[derive(Deserialize)]
-pub struct Config {
-    #[serde(rename = "RCAUTH_DB_HOST")]
-    host: String,
-    #[serde(rename = "RCAUTH_DB_PORT", default = "default_port")]
-    port: u16,
-    #[serde(rename = "RCAUTH_DB_USER")]
-    user: String,
-    #[serde(rename = "RCAUTH_DB_PASSWORD")]
-    password: String,
-    #[serde(rename = "RCAUTH_DB_NAME")]
-    database: String,
-    #[serde(rename = "RCAUTH_DB_POOL_SIZE", default = "default_pool_size")]
-    pool_size: u32,
-    #[serde(rename = "RCAUTH_DB_SSLMODE", default = "default_ssl_mode")]
-    ssl_mode: String,
-    #[serde(
-        rename = "RCAUTH_DB_MIGRATIONS_DIR",
-        default = "default_migrations_dir"
-    )]
-    migrations_dir: String,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            host: String::new(),
-            port: default_port(),
-            user: String::new(),
-            password: String::new(),
-            database: String::new(),
-            pool_size: default_pool_size(),
-            ssl_mode: default_ssl_mode(),
-            migrations_dir: default_migrations_dir(),
-        }
-    }
-}
-
 impl Config {
+    /// Loads PostgreSQL configuration from environment variables with the `RCAUTH_POSTGRES_` prefix.
+    ///
+    /// Returns a `Config` instance populated from the environment, or a `figment::Error` if loading fails.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::new().expect("Failed to load config");
+    /// ```
+    pub fn new() -> Result<Self, figment::Error> {
+        Figment::new()
+            .merge(Env::prefixed("RCAUTH_POSTGRES_"))
+            .extract()
+    }
+
+    /// Constructs a PostgreSQL connection string using the current configuration.
+    ///
+    /// # Returns
+    ///
+    /// A connection string in the format:
+    /// `postgres://user:password@host:port/database?sslmode=ssl_mode`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// let conn_str = config.connection_string();
+    /// assert!(conn_str.starts_with("postgres://"));
+    /// ```
     pub fn connection_string(&self) -> String {
         format!(
             "postgres://{}:{}@{}:{}/{}?sslmode={}",
@@ -72,18 +106,74 @@ impl Config {
         self.pool_size
     }
 
+    /// Returns the path to the migrations directory configured for the database.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// let dir = config.migrations_dir();
+    /// assert_eq!(dir, "./migrations");
+    /// ```
     pub fn migrations_dir(&self) -> &str {
         &self.migrations_dir
     }
 
-    pub fn from_env() -> Result<Self> {
-        envy::keep_names().from_env::<Self>().map_err(|e| {
-            rcauth_core::error::Error::new(
-                rcauth_core::error::ErrorCode::Internal,
-                // The error message is now more informative.
-                "Failed to load configuration. Check for missing required environment variables like RCAUTH_DB_HOST",
-                e,
-            )
-        })
+    /// Validates that required database configuration fields are not empty.
+    ///
+    /// Returns an error if any of the `host`, `user`, `password`, or `database` fields are empty; otherwise, returns `Ok(())`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// assert!(config.validate().is_ok());
+    ///
+    /// let mut invalid_config = Config::default();
+    /// invalid_config.host = "".to_string();
+    /// assert!(invalid_config.validate().is_err());
+    /// ```
+    pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.host.is_empty() {
+            return Err("Database host cannot be empty".into());
+        }
+        if self.user.is_empty() {
+            return Err("Database user cannot be empty".into());
+        }
+        if self.password.is_empty() {
+            return Err("Database password cannot be empty".into());
+        }
+        if self.database.is_empty() {
+            return Err("Database name cannot be empty".into());
+        }
+        Ok(())
+    }
+}
+
+impl Default for Config {
+    /// Returns a `Config` instance with default values for all fields.
+    ///
+    /// The default configuration uses "localhost" for the host, "postgres" for the user,
+    /// "password" for the password, "rcauth" for the database, and standard defaults for
+    /// port, pool size, SSL mode, and migrations directory.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let config = Config::default();
+    /// assert_eq!(config.host, "localhost");
+    /// assert_eq!(config.user, "postgres");
+    /// ```
+    fn default() -> Self {
+        Self {
+            host: "localhost".to_string(),
+            port: default_port(),
+            user: "postgres".to_string(),
+            password: "password".to_string(),
+            database: "rcauth".to_string(),
+            pool_size: default_pool_size(),
+            ssl_mode: default_ssl_mode(),
+            migrations_dir: default_migrations_dir(),
+        }
     }
 }

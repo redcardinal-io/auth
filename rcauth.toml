@@ -1,0 +1,30 @@
+# RedCardinal Auth Server Configuration
+
+# API Server Configuration
+api_server_host = "0.0.0.0"
+api_server_port = 8000
+
+# Management Server Configuration
+management_server_host = "0.0.0.0"
+management_server_port = 8001
+
+# Feature Flags
+enable_swagger = true
+enable_cors = true
+cors_allowed_origins = ["*"]
+
+# Database Configuration
+host = "localhost"
+port = 5432
+user = "postgres"
+password = "your_secure_password"
+database = "rcauth"
+pool_size = 20
+ssl_mode = "prefer"
+migrations_dir = "./migrations"
+
+# Logger Configuration
+log_level = "info"
+log_format = "json"
+log_file = "rcauth.log"
+log_to_console = true

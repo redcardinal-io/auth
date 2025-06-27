@@ -1,5 +1,3 @@
--- Add up migration script here
-
 create table if not exists tenants (
     id uuid primary key default uuid_generate_v1mc(),
     name text not null,
