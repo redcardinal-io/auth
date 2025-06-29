@@ -1,6 +1,4 @@
 use serde::Deserialize;
-use std::net::IpAddr;
-use std::str::FromStr;
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct Config {
@@ -174,24 +172,6 @@ impl Config {
     /// assert!(config.validate().is_ok());
     /// ```
     pub fn validate(&self) -> Result<(), Box<dyn std::error::Error>> {
-        // Validate API server host
-        if self.api_server_host.is_empty() {
-            return Err("API server host cannot be empty".into());
-        }
-
-        // Validate management server host
-        if self.management_server_host.is_empty() {
-            return Err("Management server host cannot be empty".into());
-        }
-        // Validate port numbers
-        if self.api_server_port == 0 {
-            return Err("API server port cannot be 0".into());
-        }
-
-        if self.management_server_port == 0 {
-            return Err("Management server port cannot be 0".into());
-        }
-
         // Validate that API and management servers don't use the same port if on the same host
         if self.api_server_host == self.management_server_host
             && self.api_server_port == self.management_server_port

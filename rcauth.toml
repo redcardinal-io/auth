@@ -16,12 +16,12 @@ cors_allowed_origins = ["*"]
 # Database Configuration
 host = "localhost"
 port = 5432
-user = "postgres"
-password = "your_secure_password"
+user = "redcardinal_auth_admin"
+password = "redcardinal"
 database = "rcauth"
 pool_size = 20
-ssl_mode = "prefer"
-migrations_dir = "./migrations"
+ssl_mode = "disable"
+migrations_dir = "./rcauth-store/migrations/"
 
 # Logger Configuration
 log_level = "info"
