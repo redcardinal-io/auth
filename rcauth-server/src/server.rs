@@ -61,9 +61,7 @@ pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
                 .expose_headers(Any)
         };
 
-        app = app
-            .layer(cors)
-            .layer(logger::create_logger_middleware_http());
+        app = app.layer(cors);
     }
 
     // Setup OpenAPI documentation if enabled
@@ -76,7 +74,7 @@ pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
 
         openapi.merge(HealthCheckDoc::openapi());
 
-        app.merge(SwaggerUi::new("/swagger-ui").url("/api/v1/api-docs/openapi.json", openapi))
+        app.merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi))
     } else {
         app
     };
