@@ -1,4 +1,4 @@
-use crate::routes::HealthCheckDoc;
+use crate::routes::{logger, HealthCheckDoc};
 use axum::Router;
 use std::error::Error;
 use tracing::{info, warn};
@@ -61,26 +61,30 @@ pub async fn run_api_server(config: &Config) -> Result<(), Box<dyn Error>> {
                 .expose_headers(Any)
         };
 
-        app = app.layer(cors);
+        app = app
+            .layer(cors)
+            .layer(logger::create_logger_middleware_http());
     }
 
     // Setup OpenAPI documentation if enabled
-    let routes = Router::new().merge(crate::routes::routes());
-
-    let routes = if config.enable_swagger {
+    let mut app = if config.enable_swagger {
+        info!(
+            "Enabling Swagger UI at /swagger-ui and OpenAPI docs at /api/v1/api-docs/openapi.json"
+        );
         let mut openapi =
             utoipa::openapi::OpenApi::new(Info::new("RCAuth API", "0.0.1"), Paths::new());
 
         openapi.merge(HealthCheckDoc::openapi());
 
-        routes.merge(SwaggerUi::new("/swagger-ui").url("/api/v1/api-docs/openapi.json", openapi))
+        app.merge(SwaggerUi::new("/swagger-ui").url("/api/v1/api-docs/openapi.json", openapi))
     } else {
-        routes
+        app
     };
 
+    let routes = Router::new().merge(crate::routes::routes());
     app = app
         .nest("/api/v1", routes)
-        .layer(tower_http::trace::TraceLayer::new_for_http());
+        .layer(logger::create_logger_middleware_http());
 
     let addr = config.api_addr();
     let socket_addr = SocketAddr::from_str(&addr).expect("Invalid address");
@@ -144,9 +148,8 @@ pub async fn run_management_server(config: &Config) -> Result<(), Box<dyn Error>
     }
 
     // Setup OpenAPI documentation if enabled
-    let routes = Router::new().merge(crate::routes::routes());
 
-    let routes = if config.enable_swagger {
+    let mut app = if config.enable_swagger {
         let mut openapi = utoipa::openapi::OpenApi::new(
             Info::new("RCAuth Management API", "0.0.1"),
             Paths::new(),
@@ -154,14 +157,15 @@ pub async fn run_management_server(config: &Config) -> Result<(), Box<dyn Error>
 
         openapi.merge(HealthCheckDoc::openapi());
 
-        routes.merge(SwaggerUi::new("/swagger-ui").url("/api/v1/api-docs/openapi.json", openapi))
+        app.merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", openapi))
     } else {
-        routes
+        app
     };
 
+    let routes = Router::new().merge(crate::routes::routes());
     app = app
         .nest("/management/v1", routes)
-        .layer(tower_http::trace::TraceLayer::new_for_http());
+        .layer(logger::create_logger_middleware_http());
 
     let addr = config.management_addr();
     let socket_addr = SocketAddr::from_str(&addr).expect("Invalid address");

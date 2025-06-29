@@ -21,7 +21,7 @@ enum Commands {
     /// Run database migrations
     Migrate,
 
-    /// Start the authentication server
+    /// Start the authentication & management server
     Serve,
 }
 
@@ -38,13 +38,13 @@ enum Commands {
 /// Running the application with the `migrate` subcommand:
 ///
 /// ```sh
-/// cargo run -- migrate
+/// cargo run migrate
 /// ```
 ///
 /// Running the application with the `serve` subcommand:
 ///
 /// ```sh
-/// cargo run -- serve
+/// cargo run serve
 /// ```
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
